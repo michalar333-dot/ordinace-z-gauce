@@ -68,6 +68,7 @@ h1 .taped::before{content:"";position:absolute;inset:.2em -.05em .06em;backgroun
 .coffee .tag{position:absolute;left:50%;top:-22%;transform:translateX(-50%);font-family:var(--f-mono);font-size:clamp(7px,1.4vw,10px);background:#6B3E26;color:#fff;padding:1px 4px;border-radius:3px;white-space:nowrap}
 .bedwrap{position:absolute;left:58%;bottom:13%;width:37%}
 .bed{display:block;width:100%;height:auto}
+.patient svg{display:block;overflow:visible}
 .patient{position:absolute;left:2%;bottom:86%;width:95%;transition:opacity .5s, transform .5s}
 .patient.gone{opacity:0;transform:translateY(-10%)}
 
@@ -111,7 +112,7 @@ h1 .taped::before{content:"";position:absolute;inset:.2em -.05em .06em;backgroun
 .label{font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .chip{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;padding:2px 8px;border-radius:999px;background:var(--cyan-soft);color:var(--ink)}
 .chip.fun{background:var(--tape-soft)}
-.chip.gym{background:var(--amber-soft)}
+.chip.amber{background:var(--amber-soft)}
 .opts{display:flex;flex-direction:column;gap:8px}
 .opt{font:inherit;text-align:left;background:var(--bg);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;cursor:pointer;display:flex;gap:10px;align-items:baseline}
 .opt:hover{border-color:var(--cyan)}
@@ -232,6 +233,17 @@ footer{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:ce
    type: "real" = skutečný odborný případ, "fun" = pro smích
    gym:  navazující cvičení ve cvičebně (bonusové srdíčko) */
 const P = [
+  {type:"words", name:"Míša", stopAt:36, look:{shirt:"#F28C38",hair:"#3B2A20",acc:"nesahat"},
+   say:"Stůj! Ani o krok blíž. Jsem Míša, bolí mě šíje a na mě se nesahá. Poraď mi jen slovy.",
+   o:[{t:"Dobře. Sedni si rovně, ramena dolů od uší, bradu lehce zasuň a pomalu ukloň hlavu k rameni. Třikrát 20 vteřin na každou stranu.",ok:1,r:"Jé, ono to jde i bez sahání! Ale nikomu to neříkej."},
+      {t:"A jedním prstíčkem? Úplně malinko?",ok:0,r:"Ani nehtem. Vidím, jak se k tomu blíží ten malíček!"},
+      {t:"Budu tě masírovat telepaticky. Zavři oči.",ok:0,r:"Cítím to… ne, to je jen průvan od okna."}],
+   why:"Slovní instruktáž a autoterapie jsou plnohodnotná součást fyzioterapie. Pacient se naučí cvičit sám a nepotřebuje k tomu ničí ruce.",
+   gym:{say:"Ve cvičebně platí to samé. Nesahat! Jak mi ten cvik ukážeš?",
+     o:[{t:"Předcvičím ho na sobě a ty ho zopakuješ.",ok:1,r:"Takhle? Hele, já jsem vlastně talent."},
+        {t:"Na dálkové ovládání. Kde máš baterky?",ok:0,r:"Baterky mám, ale tebe k nim nepustím."},
+        {t:"Pošlu ti to jako reels a dám like.",ok:0,r:"Super, uložím si to k ostatním 300 cvikům, co nikdy neudělám."}],
+     why:"Předcvičení a zrcadlo jsou nejlepší kamarádi terapeuta, když se na pacienta nesmí sahat."}},
   {type:"fun", name:"Pan Kubíček, účetní", look:{shirt:"#7A8FA6",hair:"#3B3B3B",acc:"tie"},
    say:"Bolí mě záda. Sedím 12 hodin denně, ale to s tím určitě nesouvisí.",
    o:[{t:"Nastavíme vám židli, monitor a každou hodinu se protáhnete.",ok:1,r:"Každou hodinu? To už budu skoro sportovec!"},
@@ -347,6 +359,7 @@ function lyingSVG(L, mood){
   if(L.acc==="bun") acc=`<circle cx="9" cy="14" r="6" fill="${L.hair}"/>`;
   if(L.acc==="band") acc='<rect x="10" y="12" width="26" height="4" rx="2" fill="#E2457A"/>';
   if(L.acc==="tie") acc='<path d="M40 25 l10 -3 l2 4 l-10 3 z" fill="#C0392B"/>';
+  if(L.acc==="nesahat") acc='<g transform="translate(56 -28) rotate(-6) scale(1.5)"><rect x="0" y="0" width="58" height="15" rx="3" fill="#fff" stroke="#E2457A" stroke-width="2"/><text x="29" y="11" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="700" fill="#E2457A">NESAHAT!</text></g><path d="M48 22 l14 -4 M52 30 l14 -6" stroke="var(--skin)" stroke-width="5" stroke-linecap="round"/>';
   const blanket = L.acc==="blanket" ? '<rect x="42" y="18" width="128" height="24" rx="10" fill="#F4D27A"/><path d="M50 22 l10 16 M70 22 l10 16 M90 22 l10 16 M110 22 l10 16 M130 22 l10 16 M150 22 l10 16" stroke="#E8B84A" stroke-width="3"/>' : "";
   const thermo = L.acc==="blanket" ? '<rect x="24" y="31" width="14" height="2.4" rx="1.2" fill="#9AA"/><circle cx="38" cy="32.2" r="2" fill="#E2457A"/>' : "";
   return `<svg viewBox="0 0 180 48" aria-hidden="true">
@@ -383,7 +396,7 @@ function standingSVG(L, mood){
 /* ---------- stav ---------- */
 const $ = id => document.getElementById(id);
 const scene=$("scene"), pt=$("pt"), patientEl=$("patient"), gymP=$("gymPatient"), bubble=$("bubble"), panel=$("panel"), hint=$("hint"), curtain=$("curtain");
-const BED_X=49, START_X=6, COFFEE_X=28.5, SPEED=32, MAX_E=3;
+const BED_X=49, stopX=()=> (P[idx]&&P[idx].stopAt)||BED_X, START_X=6, COFFEE_X=28.5, SPEED=32, MAX_E=3;
 let x=START_X, target=null, goal=null, held=0, mode="intro", idx=0, score=0, energy=MAX_E, tired=false, last=0;
 $("hudT").textContent=P.length;
 
@@ -400,7 +413,7 @@ function floatText(txt,color,left,top){
   const f=document.createElement("div"); f.className="float"; f.textContent=txt; f.style.color=color;
   f.style.left=left||"64%"; f.style.top=top||"38%"; scene.appendChild(f); setTimeout(()=>f.remove(),1500);
 }
-function chip(type){ return type==="real"?'<span class="chip">ODBORNĚ</span>':type==="gym"?'<span class="chip gym">CVIČEBNA</span>':'<span class="chip fun">PRO SMÍCH</span>'; }
+function chip(type){ if(type==="words") return '<span class="chip amber">JEN SLOVY</span>'; return type==="real"?'<span class="chip">ODBORNĚ</span>':type==="gym"?'<span class="chip amber">CVIČEBNA</span>':'<span class="chip fun">PRO SMÍCH</span>'; }
 
 function intro(){
   mode="intro"; idx=0; score=0; energy=MAX_E; tired=false; x=START_X; target=null; goal=null;
@@ -413,7 +426,7 @@ function intro(){
 }
 
 function walkPanel(){
-  setHint(tired?"Bez kafe ani ránu. Zajdi ke kávovaru.":"Dojdi k lehátku: šipky nebo klepni na podlahu");
+  setHint(tired?"Bez kafe ani ránu. Zajdi ke kávovaru.":P[idx].stopAt?"Pozor, tahle pacientka nesnáší doteky":"Dojdi k lehátku: šipky nebo klepni na podlahu");
   panel.innerHTML=`<span class="label">${tired?'Došla energie':'Jdi k lehátku'}</span>
     <div class="controls">
       <button class="walk" id="wl" aria-label="Jít doleva">◀</button>
@@ -431,7 +444,7 @@ function walkPanel(){
   };
   bind($("wl"),-1); bind($("wr"),1);
   $("wc").onclick=goCoffee;
-  $("wb").onclick=()=>{ target=BED_X; goal=null; };
+  $("wb").onclick=()=>{ target=stopX(); goal=null; };
 }
 function goCoffee(){ if(mode!=="walk") return; target=COFFEE_X; goal="coffee"; held=0; }
 
@@ -463,10 +476,10 @@ function loop(t){
   pt.style.left=x+"%";
   pt.classList.toggle("walking",dir!==0);
   if(dir<0) pt.classList.add("flip"); else if(dir>0) pt.classList.remove("flip");
-  if(mode==="walk" && x>=BED_X-.1 && dir>=0){
+  if(mode==="walk" && x>=stopX()-.1 && dir>=0){
     if(tired){ if(!pt.dataset.z){ pt.dataset.z=1; floatText("Zzz…","#5A716D",(x+2)+"%","30%"); say("Ty","Bez kafe ani ránu. Pacient chvilku počká.",true); } }
     else { held=0; target=null; arrive(); }
-  } else if(x<BED_X-3) delete pt.dataset.z;
+  } else if(x<stopX()-3) delete pt.dataset.z;
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
