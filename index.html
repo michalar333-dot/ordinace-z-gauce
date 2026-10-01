@@ -8,13 +8,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: a side-view treatment room (illustration) above a dialogue panel; kinesio tape as accent */
+/* Layout: side-view treatment room / exercise room (illustration) above a dialogue panel; kinesio tape as accent */
 :root{
   --bg:#EEF3F1; --card:#FFFFFF; --ink:#16302E; --muted:#5A716D; --line:#CFDCD8;
-  --tape:#E2457A; --tape-soft:#FBE3EC; --cyan:#1E9DB4; --cyan-soft:#DDF1F5;
+  --tape:#E2457A; --tape-soft:#FBE3EC; --cyan:#1E9DB4; --cyan-soft:#DDF1F5; --amber:#B7791F; --amber-soft:#FBEFD9;
   /* the room illustration keeps one look in both themes */
   --wall:#DCEBE7; --wall2:#CFE2DD; --floor:#B9A48A; --floor2:#A8927A; --bed:#2F6F6A; --bed-top:#3E8C86;
-  --skin:#F2C7A5; --skin2:#D9A27E; --tunic:#FFFFFF; --pants:#1E9DB4; --hair:#6B3E26; --shoe:#2B2B2B;
+  --gwall:#E4E9F2; --gfloor:#5E6B7C; --gfloor2:#566273;
+  --skin:#F2C7A5; --tunic:#FFFFFF; --pants:#1E9DB4; --hair:#6B3E26; --shoe:#2B2B2B;
   --bubble:#FFFFFF; --bubble-ink:#16302E;
   --f-display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
   --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
@@ -22,82 +23,117 @@
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0F1C1B; --card:#172826; --ink:#E6F0EE; --muted:#9AB2AD; --line:#2B403D;
-  --tape:#F0679A; --tape-soft:#3A1E2A; --cyan:#4CC2D8; --cyan-soft:#16343A; color-scheme:dark}}
+  --tape:#F0679A; --tape-soft:#3A1E2A; --cyan:#4CC2D8; --cyan-soft:#16343A; --amber:#E8B04A; --amber-soft:#3A2E17; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0F1C1B; --card:#172826; --ink:#E6F0EE; --muted:#9AB2AD; --line:#2B403D;
-  --tape:#F0679A; --tape-soft:#3A1E2A; --cyan:#4CC2D8; --cyan-soft:#16343A; color-scheme:dark}
+  --tape:#F0679A; --tape-soft:#3A1E2A; --cyan:#4CC2D8; --cyan-soft:#16343A; --amber:#E8B04A; --amber-soft:#3A2E17; color-scheme:dark}
 
 *{box-sizing:border-box}
 body{margin:0}
 [hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.45;padding:20px 16px 40px}
 .wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
-header{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap}
+header{display:flex;justify-content:space-between;align-items:end;gap:10px;flex-wrap:wrap}
 h1{font-family:var(--f-display);font-weight:800;font-size:clamp(30px,7vw,44px);line-height:1;margin:0;letter-spacing:-.02em}
 h1 .taped{position:relative;display:inline-block;padding:0 .1em;z-index:0}
 h1 .taped::before{content:"";position:absolute;inset:.2em -.05em .06em;background:var(--tape);opacity:.3;border-radius:3px;transform:rotate(-2deg);z-index:-1}
-.hud{font-family:var(--f-mono);font-size:13px;color:var(--muted);display:flex;gap:14px}
+.hud{font-family:var(--f-mono);font-size:13px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
 .hud b{color:var(--ink)}
-.hearts{color:var(--tape);letter-spacing:2px}
+.hud .heart{color:var(--tape)}
+.cups{letter-spacing:1px}
+.cups .off{opacity:.25;filter:grayscale(1)}
 
 /* scene */
 .scene{position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:var(--wall);border:1px solid var(--line);user-select:none;-webkit-user-select:none;touch-action:manipulation;cursor:pointer}
 @media (max-width:520px){.scene{aspect-ratio:4/3.4}}
+.room,.gym{position:absolute;inset:0;transition:opacity .4s}
+.gym{opacity:0;pointer-events:none;background:var(--gwall)}
+.scene.in-gym .gym{opacity:1;pointer-events:auto}
+.scene.in-gym .room{opacity:0;pointer-events:none}
+.scene.in-gym{cursor:default}
 .wallstripe{position:absolute;left:0;right:0;top:52%;height:4%;background:var(--wall2)}
 .floor{position:absolute;left:0;right:0;bottom:0;height:22%;background:repeating-linear-gradient(90deg,var(--floor) 0 9%,var(--floor2) 9% 9.4%)}
 .door{position:absolute;left:3%;bottom:22%;width:12%;height:58%;background:#8DB8B1;border:3px solid #6E9C95;border-bottom:0;border-radius:4px 4px 0 0}
 .door::after{content:"";position:absolute;right:12%;top:50%;width:10%;aspect-ratio:1;border-radius:50%;background:#F4D27A}
-.door span{position:absolute;top:10%;left:50%;transform:translateX(-50%);font-family:var(--f-mono);font-size:clamp(7px,1.4vw,10px);color:#fff;background:#6E9C95;padding:1px 4px;border-radius:3px;white-space:nowrap}
-.poster{position:absolute;left:22%;top:12%;width:15%;aspect-ratio:3/4;background:#fff;border:2px solid #C9D9D5;border-radius:3px;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:clamp(8px,1.8vw,13px);color:#2F6F6A;text-align:center;line-height:1.05;padding:4%;transform:rotate(-2deg)}
+.door span,.gdoor span{position:absolute;top:10%;left:50%;transform:translateX(-50%);font-family:var(--f-mono);font-size:clamp(7px,1.4vw,10px);color:#fff;background:#6E9C95;padding:1px 4px;border-radius:3px;white-space:nowrap}
+.poster{position:absolute;left:30%;top:10%;width:13%;aspect-ratio:3/4;background:#fff;border:2px solid #C9D9D5;border-radius:3px;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:clamp(8px,1.7vw,12px);color:#2F6F6A;text-align:center;line-height:1.05;padding:4%;transform:rotate(-2deg)}
 .poster small{display:block;font-family:var(--f-mono);font-weight:400;font-size:.7em;color:#E2457A;margin-top:4px}
 .window{position:absolute;right:6%;top:9%;width:20%;aspect-ratio:4/3;background:linear-gradient(#BFE6F2,#E9F7FB);border:4px solid #fff;border-radius:4px;box-shadow:0 0 0 2px #C9D9D5}
 .window::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;background:#fff}
-.skeleton{position:absolute;left:39%;bottom:21%;width:7%}
-.bedwrap{position:absolute;left:56%;bottom:13%;width:38%}
+.skeleton{position:absolute;left:45%;bottom:21%;width:6.5%}
+.coffee{position:absolute;left:20%;bottom:21%;width:8.5%;cursor:pointer}
+.coffee svg{display:block;width:100%;height:auto}
+.coffee .steam{animation:steam 1.6s infinite ease-in-out}
+@keyframes steam{0%{opacity:0;transform:translateY(4px)}50%{opacity:.8}100%{opacity:0;transform:translateY(-6px)}}
+.coffee .tag{position:absolute;left:50%;top:-22%;transform:translateX(-50%);font-family:var(--f-mono);font-size:clamp(7px,1.4vw,10px);background:#6B3E26;color:#fff;padding:1px 4px;border-radius:3px;white-space:nowrap}
+.bedwrap{position:absolute;left:58%;bottom:13%;width:37%}
 .bed{display:block;width:100%;height:auto}
 .patient{position:absolute;left:2%;bottom:86%;width:95%;transition:opacity .5s, transform .5s}
 .patient.gone{opacity:0;transform:translateY(-10%)}
-.pt{position:absolute;bottom:12%;width:9%;transition:none}
+
+/* gym */
+.gfloor{position:absolute;left:0;right:0;bottom:0;height:22%;background:repeating-linear-gradient(90deg,var(--gfloor) 0 12%,var(--gfloor2) 12% 12.4%)}
+.bars{position:absolute;left:5%;bottom:22%;width:14%;height:66%;border-left:5px solid #B98A55;border-right:5px solid #B98A55;background:repeating-linear-gradient(180deg,transparent 0 9%,#C99A63 9% 12%)}
+.mirror{position:absolute;left:24%;top:12%;width:22%;height:58%;background:linear-gradient(135deg,#F4F8FC 0 40%,#DCE6F0 40% 55%,#F4F8FC 55%);border:4px solid #C3CEDB;border-radius:4px}
+.gposter{position:absolute;right:6%;top:10%;width:18%;background:#fff;border:2px solid #C3CEDB;border-radius:3px;padding:2% 2%;font-family:var(--f-display);font-weight:800;font-size:clamp(8px,1.7vw,12px);color:#E2457A;text-align:center;line-height:1.1;transform:rotate(2deg)}
+.mat{position:absolute;left:24%;bottom:16%;width:44%;height:5%;background:#E2457A;border-radius:6px;opacity:.85}
+.ball{position:absolute;right:9%;bottom:20%;width:13%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#7FD3E3,#1E9DB4 60%,#16798B)}
+.gym .who{position:absolute;bottom:14%}
+.gym .who svg{display:block;width:100%;height:auto;overflow:visible}
+
+.pt{position:absolute;bottom:12%;width:9%}
 .pt svg{display:block;width:100%;height:auto;overflow:visible}
 .pt.flip svg{transform:scaleX(-1)}
-.pt .leg{transform-box:fill-box;transform-origin:50% 0}
+.leg{transform-box:fill-box;transform-origin:50% 0}
 .pt.walking .leg.l{animation:swing .42s infinite alternate ease-in-out}
 .pt.walking .leg.r{animation:swing .42s infinite alternate-reverse ease-in-out}
 .pt.walking svg{animation:bob .21s infinite alternate ease-in-out}
+.pt.sip .arm-r{transform-box:fill-box;transform-origin:50% 0;transform:rotate(-120deg);transition:transform .3s}
+.pt .mug{opacity:0}
+.pt.sip .mug{opacity:1}
 @keyframes swing{from{transform:rotate(-22deg)}to{transform:rotate(22deg)}}
 @keyframes bob{from{translate:0 0}to{translate:0 -2%}}
-.bubble{position:absolute;left:44%;right:3%;top:5%;background:var(--bubble);color:var(--bubble-ink);border-radius:14px;padding:10px 12px;font-size:clamp(13px,2.4vw,16px);line-height:1.3;box-shadow:0 2px 0 rgba(0,0,0,.08);transition:opacity .25s, transform .25s}
-.bubble::after{content:"";position:absolute;left:18%;bottom:-10px;border:10px solid transparent;border-top-color:var(--bubble);border-bottom:0}
+.bubble{position:absolute;left:44%;right:3%;top:5%;background:var(--bubble);color:var(--bubble-ink);border-radius:14px;padding:10px 12px;font-size:clamp(13px,2.4vw,16px);line-height:1.3;box-shadow:0 2px 0 rgba(0,0,0,.08);transition:opacity .25s, transform .25s;z-index:3}
+.bubble::after{content:"";position:absolute;left:var(--tail,18%);bottom:-10px;border:10px solid transparent;border-top-color:var(--bubble);border-bottom:0}
 .bubble.hidden{opacity:0;transform:translateY(6px);pointer-events:none}
+.bubble.me{left:3%;right:44%;--tail:22%}
 .bubble .name{display:block;font-family:var(--f-mono);font-size:.75em;color:#1E9DB4;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
-.hint{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);font-family:var(--f-mono);font-size:clamp(10px,2vw,13px);background:rgba(22,48,46,.82);color:#fff;padding:4px 10px;border-radius:999px;white-space:nowrap;transition:opacity .3s}
+.hint{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);font-family:var(--f-mono);font-size:clamp(10px,2vw,13px);background:rgba(22,48,46,.82);color:#fff;padding:4px 10px;border-radius:999px;white-space:nowrap;transition:opacity .3s;z-index:3}
 .hint.hidden{opacity:0}
-.float{position:absolute;font-family:var(--f-display);font-weight:800;font-size:clamp(16px,3.5vw,24px);pointer-events:none;animation:up 1.4s forwards}
+.float{position:absolute;font-family:var(--f-display);font-weight:800;font-size:clamp(16px,3.5vw,24px);pointer-events:none;animation:up 1.4s forwards;z-index:4}
 @keyframes up{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-60px)}}
+.curtain{position:absolute;inset:0;background:#16302E;color:#fff;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:clamp(18px,4vw,28px);opacity:0;pointer-events:none;transition:opacity .35s;z-index:5}
+.curtain.on{opacity:1}
 
 /* panel */
 .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:120px}
 .panel .lead{margin:0;color:var(--muted)}
-.label{font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.label{font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;padding:2px 8px;border-radius:999px;background:var(--cyan-soft);color:var(--ink)}
+.chip.fun{background:var(--tape-soft)}
+.chip.gym{background:var(--amber-soft)}
 .opts{display:flex;flex-direction:column;gap:8px}
 .opt{font:inherit;text-align:left;background:var(--bg);color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;cursor:pointer;display:flex;gap:10px;align-items:baseline}
 .opt:hover{border-color:var(--cyan)}
 .opt .k{font-family:var(--f-mono);font-size:13px;color:var(--muted);flex:none}
 .opt:focus-visible,.btn:focus-visible,.walk:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
-.btn{font:inherit;font-weight:700;background:var(--ink);color:var(--bg);border:0;border-radius:10px;padding:12px 18px;cursor:pointer;align-self:flex-start}
+.btn{font:inherit;font-weight:700;background:var(--ink);color:var(--bg);border:0;border-radius:10px;padding:12px 18px;cursor:pointer}
 .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.gymbtn{background:var(--amber);color:#fff}
 .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.walk{font:inherit;font-size:22px;width:56px;height:48px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;touch-action:none}
+.walk{font:inherit;font-size:20px;min-width:52px;height:48px;padding:0 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;touch-action:none}
+.walk.txt{font-size:15px;font-weight:700}
 .walk:active{background:var(--cyan-soft)}
-.react{border-radius:10px;padding:12px;background:var(--cyan-soft)}
+.react{border-radius:10px;padding:12px;background:var(--cyan-soft);display:flex;flex-direction:column;gap:4px}
 .react.meh{background:var(--tape-soft)}
-.react strong{font-family:var(--f-display);font-size:18px;display:block}
+.react strong{font-family:var(--f-display);font-size:18px}
+.react .why{font-size:15px;color:var(--ink);opacity:.85}
 .rx{border:1.5px dashed var(--tape);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px}
 .rx h3{margin:0;font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--tape)}
 .rx ul{margin:0;padding-left:20px}
 .big{font-family:var(--f-display);font-weight:800;font-size:44px;line-height:1;margin:0}
 footer{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:center}
-@media (prefers-reduced-motion: reduce){.pt.walking .leg,.pt.walking svg,.float{animation:none!important}}
+@media (prefers-reduced-motion: reduce){.pt.walking .leg,.pt.walking svg,.float,.coffee .steam{animation:none!important}}
 </style>
 </head>
 <body>
@@ -105,35 +141,67 @@ footer{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:ce
 <div class="wrap">
   <header>
     <h1>Ordinace <span class="taped">z gauče</span></h1>
-    <div class="hud"><span>Pacient <b id="hudN">1</b>/<b id="hudT">8</b></span><span class="hearts" id="hudH" aria-label="spokojenost"></span></div>
+    <div class="hud">
+      <span>Pacient <b id="hudN">1</b>/<b id="hudT">12</b></span>
+      <span><span class="heart">♥</span> <b id="hudS">0</b></span>
+      <span class="cups" id="hudE" aria-label="energie"></span>
+    </div>
   </header>
 
-  <div class="scene" id="scene" aria-label="Ordinace: fyzioterapeutka, lehátko a pacient">
-    <div class="wallstripe"></div>
-    <div class="door"><span>ČEKÁRNA</span></div>
-    <div class="poster">SEĎ ROVNĚ!<small>(a ty taky)</small></div>
-    <div class="window"></div>
-    <svg class="skeleton" viewBox="0 0 40 120" aria-hidden="true">
-      <circle cx="20" cy="12" r="9" fill="#F4F1E8" stroke="#BDB7A6" stroke-width="1.5"/>
-      <circle cx="17" cy="11" r="1.8" fill="#555"/><circle cx="23" cy="11" r="1.8" fill="#555"/>
-      <path d="M16 17 h8" stroke="#555" stroke-width="1.2"/>
-      <line x1="20" y1="21" x2="20" y2="62" stroke="#F4F1E8" stroke-width="4"/>
-      <g stroke="#F4F1E8" stroke-width="2.5" fill="none"><path d="M12 30 q8 -3 16 0"/><path d="M12 36 q8 -3 16 0"/><path d="M12 42 q8 -3 16 0"/><path d="M13 48 q7 -3 14 0"/></g>
-      <path d="M8 28 L4 55 M32 28 L38 22" stroke="#F4F1E8" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <path d="M13 62 h14 l-3 6 h-8 z" fill="#F4F1E8"/>
-      <path d="M15 68 L13 98 M25 68 L27 98" stroke="#F4F1E8" stroke-width="3.5" stroke-linecap="round"/>
-      <line x1="20" y1="98" x2="20" y2="116" stroke="#8A8A8A" stroke-width="2"/>
-      <path d="M8 118 h24" stroke="#8A8A8A" stroke-width="3" stroke-linecap="round"/>
-    </svg>
-    <div class="floor"></div>
-    <div class="bedwrap"><svg class="bed" viewBox="0 0 200 70" aria-hidden="true">
-      <rect x="20" y="22" width="8" height="46" fill="#5C6B69"/><rect x="172" y="22" width="8" height="46" fill="#5C6B69"/>
-      <rect x="0" y="6" width="200" height="18" rx="6" fill="var(--bed)"/>
-      <rect x="0" y="4" width="200" height="8" rx="4" fill="var(--bed-top)"/>
-      <rect x="4" y="0" width="34" height="8" rx="4" fill="#fff"/>
-    </svg>
-    <div class="patient" id="patient"></div></div>
-    <div class="pt" id="pt" style="left:8%">
+  <div class="scene" id="scene" aria-label="Ordinace: fyzioterapeutka, kávovar, lehátko a pacient">
+    <div class="room">
+      <div class="wallstripe"></div>
+      <div class="door"><span>ČEKÁRNA</span></div>
+      <div class="poster">SEĎ ROVNĚ!<small>(a ty taky)</small></div>
+      <div class="window"></div>
+      <svg class="skeleton" viewBox="0 0 40 120" aria-hidden="true">
+        <circle cx="20" cy="12" r="9" fill="#F4F1E8" stroke="#BDB7A6" stroke-width="1.5"/>
+        <circle cx="17" cy="11" r="1.8" fill="#555"/><circle cx="23" cy="11" r="1.8" fill="#555"/>
+        <path d="M16 17 h8" stroke="#555" stroke-width="1.2"/>
+        <line x1="20" y1="21" x2="20" y2="62" stroke="#F4F1E8" stroke-width="4"/>
+        <g stroke="#F4F1E8" stroke-width="2.5" fill="none"><path d="M12 30 q8 -3 16 0"/><path d="M12 36 q8 -3 16 0"/><path d="M12 42 q8 -3 16 0"/><path d="M13 48 q7 -3 14 0"/></g>
+        <path d="M8 28 L4 55 M32 28 L38 22" stroke="#F4F1E8" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M13 62 h14 l-3 6 h-8 z" fill="#F4F1E8"/>
+        <path d="M15 68 L13 98 M25 68 L27 98" stroke="#F4F1E8" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="20" y1="98" x2="20" y2="116" stroke="#8A8A8A" stroke-width="2"/>
+        <path d="M8 118 h24" stroke="#8A8A8A" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      <div class="coffee" id="coffee" role="button" tabindex="-1" aria-label="Kávovar">
+        <span class="tag">KAFE</span>
+        <svg viewBox="0 0 50 80" aria-hidden="true">
+          <g class="steam" fill="none" stroke="#9AA9A6" stroke-width="2" stroke-linecap="round"><path d="M20 8 q-3 -4 0 -8"/><path d="M28 8 q3 -4 0 -8"/></g>
+          <rect x="8" y="10" width="34" height="34" rx="5" fill="#3A3A3A"/>
+          <rect x="12" y="14" width="26" height="8" rx="2" fill="#7FD3E3"/>
+          <circle cx="16" cy="28" r="2.4" fill="#E2457A"/><circle cx="24" cy="28" r="2.4" fill="#F4D27A"/>
+          <rect x="18" y="32" width="14" height="6" fill="#222"/>
+          <rect x="19" y="38" width="12" height="5" rx="1" fill="#fff"/>
+          <rect x="4" y="44" width="42" height="34" rx="2" fill="#C9B79C"/>
+          <rect x="8" y="50" width="34" height="2" fill="#B39F82"/>
+        </svg>
+      </div>
+      <div class="floor"></div>
+      <div class="bedwrap">
+        <svg class="bed" viewBox="0 0 200 70" aria-hidden="true">
+          <rect x="20" y="22" width="8" height="46" fill="#5C6B69"/><rect x="172" y="22" width="8" height="46" fill="#5C6B69"/>
+          <rect x="0" y="6" width="200" height="18" rx="6" fill="var(--bed)"/>
+          <rect x="0" y="4" width="200" height="8" rx="4" fill="var(--bed-top)"/>
+          <rect x="4" y="0" width="34" height="8" rx="4" fill="#fff"/>
+        </svg>
+        <div class="patient" id="patient"></div>
+      </div>
+    </div>
+
+    <div class="gym" aria-hidden="true">
+      <div class="bars"></div>
+      <div class="mirror"></div>
+      <div class="gposter">JEŠTĚ 3<br>OPAKOVÁNÍ!</div>
+      <div class="gfloor"></div>
+      <div class="mat"></div>
+      <div class="ball"></div>
+      <div class="who" id="gymPatient" style="left:52%;width:9%"></div>
+    </div>
+
+    <div class="pt" id="pt" style="left:6%">
       <svg viewBox="0 0 40 92" aria-hidden="true">
         <g class="leg l"><rect x="13" y="56" width="6" height="28" rx="3" fill="var(--pants)"/><rect x="11" y="82" width="10" height="5" rx="2" fill="var(--shoe)"/></g>
         <g class="leg r"><rect x="21" y="56" width="6" height="28" rx="3" fill="var(--pants)"/><rect x="21" y="82" width="10" height="5" rx="2" fill="var(--shoe)"/></g>
@@ -141,7 +209,7 @@ footer{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:ce
         <rect x="9" y="22" width="22" height="38" rx="7" fill="var(--tunic)" stroke="#D2DEDB" stroke-width="1"/>
         <path d="M14 23 l6 8 l6 -8" stroke="#1E9DB4" stroke-width="2" fill="none"/>
         <rect x="22" y="38" width="6" height="7" rx="1" fill="#E2457A"/>
-        <path d="M33 26 q4 6 2 15" stroke="var(--skin)" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <g class="arm-r"><path d="M33 26 q4 6 2 15" stroke="var(--skin)" stroke-width="5" stroke-linecap="round" fill="none"/><g class="mug"><rect x="31" y="40" width="8" height="8" rx="1.5" fill="#fff" stroke="#6B3E26" stroke-width="1"/></g></g>
         <path d="M11 8 q-8 4 -6 14 q3 -6 7 -7" fill="var(--hair)"/>
         <circle cx="20" cy="12" r="9.5" fill="var(--skin)"/>
         <path d="M10 11 q2 -10 11 -10 q9 0 9 9 q-6 -5 -20 1" fill="var(--hair)"/>
@@ -151,7 +219,8 @@ footer{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:ce
       </svg>
     </div>
     <div class="bubble hidden" id="bubble"></div>
-    <div class="hint" id="hint">Dojdi k lehátku: šipky nebo klepni na podlahu</div>
+    <div class="hint hidden" id="hint"></div>
+    <div class="curtain" id="curtain">Přesun do cvičebny…</div>
   </div>
 
   <section class="panel" id="panel" aria-live="polite"></section>
@@ -159,64 +228,120 @@ footer{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:ce
 </div>
 
 <script>
-/* ---------- pacienti ---------- */
+/* ---------- pacienti ----------
+   type: "real" = skutečný odborný případ, "fun" = pro smích
+   gym:  navazující cvičení ve cvičebně (bonusové srdíčko) */
 const P = [
-  {name:"Pan Kubíček, účetní", look:{shirt:"#7A8FA6",hair:"#3B3B3B",acc:"tie"},
+  {type:"fun", name:"Pan Kubíček, účetní", look:{shirt:"#7A8FA6",hair:"#3B3B3B",acc:"tie"},
    say:"Bolí mě záda. Sedím 12 hodin denně, ale to s tím určitě nesouvisí.",
-   o:[
-    {t:"Nastavíme vám židli, monitor a každou hodinu se protáhnete.", ok:1, r:"Každou hodinu? To už budu skoro sportovec!"},
-    {t:"Zkusil jste sedět 13 hodin? Třeba se to přetočí.", ok:0, r:"Hm. Logické. Zkusím 14, ať je to jisté."},
-    {t:"Doporučuji stát. Napořád. I ve spánku.", ok:0, r:"Jako kůň? Manželka bude nadšená."}]},
-  {name:"Paní Vlasta, 78 let", look:{shirt:"#B07AA1",hair:"#D8D8D8",acc:"bun"},
+   o:[{t:"Nastavíme vám židli, monitor a každou hodinu se protáhnete.",ok:1,r:"Každou hodinu? To už budu skoro sportovec!"},
+      {t:"Zkusil jste sedět 13 hodin? Třeba se to přetočí.",ok:0,r:"Hm. Logické. Zkusím 14, ať je to jisté."},
+      {t:"Doporučuji stát. Napořád. I ve spánku.",ok:0,r:"Jako kůň? Manželka bude nadšená."}]},
+
+  {type:"real", name:"Pan Šimek, 44 let, skladník", look:{shirt:"#5B7F3A",hair:"#4A3423",acc:"none"},
+   say:"Včera jsem zvedal bednu a seklo mi v kříži. Do nohy to nevystřeluje, jinak jsem v pohodě. Mám zůstat týden v posteli?",
+   o:[{t:"Zůstaňte přiměřeně aktivní, chůze a běžné činnosti podle bolesti.",ok:1,r:"Takže gauč jen večer? Dobře, beru."},
+      {t:"Ano, týden přísný klid na lůžku.",ok:0,r:"Týden? Já už teď ležím a záda bolí víc."},
+      {t:"Hned zítra magnetická rezonance.",ok:0,r:"Na MR se v Česku čeká déle, než se to zahojí."}],
+   why:"U akutní bolesti zad bez varovných příznaků doporučují guidelines zůstat aktivní. Klid na lůžku hojení zpomaluje a zobrazovací vyšetření bez red flags není potřeba.",
+   gym:{say:"Tak jsme ve cvičebně. Co budeme dělat?",
+     o:[{t:"Chůze a jemné cviky na hybnost bederní páteře.",ok:1,r:"Hýbu se a nebolí to víc. Kouzlo!"},
+        {t:"Mrtvý tah se 100 kily, ať to rozhýbeme.",ok:0,r:"Bedna mi stačila, děkuju pěkně."},
+        {t:"Lehnout si na podložku a čekat, až to přejde.",ok:0,r:"To jsem mohl dělat doma u seriálu."}],
+     why:"V akutní fázi pomáhá šetrný pohyb a postupné vracení se k běžné zátěži."}},
+
+  {type:"fun", name:"Paní Vlasta, 78 let", look:{shirt:"#B07AA1",hair:"#D8D8D8",acc:"bun"},
    say:"Mladá paní, já cvičím každý den! Teda… myslím na to každý den.",
-   o:[
-    {t:"Myšlenky se počítají. Jste zdravá jak řípa, nashle.", ok:0, r:"No vidíte! A sousedka mi to nevěřila."},
-    {t:"Tak to zkusíme i v reálu. Tři cviky, pět minut denně.", ok:1, r:"Pět minut? To zvládnu i během Ordinace v růžové zahradě."},
-    {t:"Pošlu vám cviky telepaticky. Cítíte to?", ok:0, r:"Něco cítím… ale to bude asi ten guláš."}]},
-  {name:"Matěj, fotbalista", look:{shirt:"#D9534F",hair:"#C98B3C",acc:"cap"},
-   say:"Vyvrtnul jsem si kotník. V sobotu je zápas. Zvládnete zázrak do sobotu?",
-   o:[
-    {t:"Zatejpuju vás do mumie. Půjdete do brány.", ok:0, r:"Brankář mumie… soupeř se aspoň lekne."},
-    {t:"Hrajte po jedné noze. Budete nepředvídatelný.", ok:0, r:"Plameňák v útoku. Trenér mě zabije."},
-    {t:"Led, zvednutá noha, šetření a sobotu vynechte.", ok:1, r:"Ach jo… dobře. Ale fandit budu vleže a nahlas."}]},
-  {name:"Tomáš, programátor", look:{shirt:"#2F2F2F",hair:"#5A3A22",acc:"glasses"},
-   say:"Bolí mě krk. Na monitor koukám zhruba takhle… *předsune hlavu jako želva*",
-   o:[
-    {t:"Kupte si menší monitor, ať není tak daleko.", ok:0, r:"Mobil je nejmenší monitor. Tím jsem začal."},
-    {t:"Monitor do výšky očí a protáhneme šíji.", ok:1, r:"Wow. A to jsem si to chtěl řešit pluginem."},
-    {t:"Otočte monitor vzhůru nohama. Procvičíte hlavu.", ok:0, r:"Hm, kód se tím ale nezlepšil. Tak to by mohl být bug."}]},
-  {name:"Pan Hypochondr", look:{shirt:"#8BB37A",hair:"#9A9A9A",acc:"none"},
+   o:[{t:"Myšlenky se počítají. Jste zdravá jak řípa, nashle.",ok:0,r:"No vidíte! A sousedka mi to nevěřila."},
+      {t:"Tak to zkusíme i v reálu. Tři cviky, pět minut denně.",ok:1,r:"Pět minut? To zvládnu i během seriálu."},
+      {t:"Pošlu vám cviky telepaticky. Cítíte to?",ok:0,r:"Něco cítím… ale to bude asi ten guláš."}]},
+
+  {type:"real", name:"Paní Benešová, 61 let", look:{shirt:"#9C6ADE",hair:"#8C8C8C",acc:"glasses"},
+   say:"Když se v posteli otočím na pravý bok, na pár vteřin se mi strašně zatočí svět. Pak to přejde.",
+   o:[{t:"Lasègueův test a posilování šíje.",ok:0,r:"Noha mě nebolí, točí se mi hlava, mladá paní."},
+      {t:"Podezření na BPPV, ověřím Dix-Hallpikovým testem a udělám repoziční manévr.",ok:1,r:"Svět se zastavil. Vy jste čarodějka!"},
+      {t:"To bude krční páteř, namasírujeme trapézy.",ok:0,r:"Masáž příjemná, ale točí se to dál."}],
+   why:"Krátké závratě vyvolané změnou polohy hlavy jsou typické pro benigní polohové vertigo. Dix-Hallpike potvrdí zadní kanálek a Epleyho manévr přesune otolity zpět."},
+
+  {type:"fun", name:"Pan Hypochondr", look:{shirt:"#8BB37A",hair:"#9A9A9A",acc:"none"},
    say:"Na internetu jsem si zjistil, že mám vzácný syndrom. Vlastně asi tři najednou.",
-   o:[
-    {t:"Gratuluji, sbírka je skoro kompletní!", ok:0, r:"Že jo! Chybí mi už jen jeden, ten lotyšský."},
-    {t:"Internet má diagnózu na všechno. Pojďme vás vyšetřit.", ok:1, r:"Vyšetřit? Naživo? To je tak retro… dobře."},
-    {t:"Na jaký web chodíte? Objednám se tam taky.", ok:0, r:"Mají dobré recenze. Pět hvězd, dvě amputace."}]},
-  {name:"Lucie, maminka", look:{shirt:"#E8A33D",hair:"#2E2E2E",acc:"bun"},
-   say:"Bolí mě rameno. Nosím 12 kilo, které pořád chce na ruku a říká „ještě“.",
-   o:[
-    {t:"Vyměňte ho za lehčí model.", ok:0, r:"Zkoušela jsem. Reklamace se nepřijímají."},
-    {t:"Posílíme lopatky a naučíme se střídat ruce.", ok:1, r:"Konečně plán! Pravá ruka si oddechne."},
-    {t:"Dejte dítěti GPS, ať chodí samo.", ok:0, r:"Chodí. Hlavně ke schodům a k zásuvce."}]},
-  {name:"Pepa, novoroční běžec", look:{shirt:"#3E8C86",hair:"#7A4B2A",acc:"band"},
+   o:[{t:"Gratuluji, sbírka je skoro kompletní!",ok:0,r:"Že jo! Chybí mi už jen jeden, ten lotyšský."},
+      {t:"Internet má diagnózu na všechno. Pojďme vás vyšetřit.",ok:1,r:"Vyšetřit? Naživo? To je tak retro… dobře."},
+      {t:"Na jaký web chodíte? Objednám se tam taky.",ok:0,r:"Mají skvělé recenze. Pět hvězd, nula vyléčených."}]},
+
+  {type:"real", name:"Klára, 24 let, florbalistka", look:{shirt:"#E8A33D",hair:"#C98B3C",acc:"band"},
+   say:"Jsem dva týdny po rekonstrukci předního zkříženého vazu. Co je teď nejdůležitější?",
+   o:[{t:"Lehký běh a doskoky, ať si vaz zvyká na zátěž.",ok:0,r:"Chirurg by mě asi přizabil."},
+      {t:"Šest týdnů úplný klid, koleno nehýbat.",ok:0,r:"To mi koleno ztuhne jak beton."},
+      {t:"Plná extenze kolene, aktivace kvadricepsu a hlídat otok.",ok:1,r:"Jasně, natáhnout, zatnout, chladit. Jdeme na to!"}],
+   why:"V časné fázi po rekonstrukci LCA je klíčové získat plnou extenzi, probudit kvadriceps a zvládnout otok. Běh a skoky přicházejí až o měsíce později.",
+   gym:{say:"Jsme ve cvičebně. Co dnes cvičíme?",
+     o:[{t:"Hluboké dřepy s činkou.",ok:0,r:"Koleno právě podalo výpověď."},
+        {t:"Izometrie kvadricepsu a zvedání natažené nohy.",ok:1,r:"Stehno se probouzí! Slabě, ale je tam."},
+        {t:"Skoky z bedny, ať vidíme odvahu.",ok:0,r:"Odvahu mám. Vaz zatím ne."}],
+     why:"Izometrie a zvedání natažené nohy jsou bezpečný začátek. Plyometrie patří až do pozdní fáze rehabilitace."}},
+
+  {type:"fun", name:"Tomáš, programátor", look:{shirt:"#2F2F2F",hair:"#5A3A22",acc:"glasses"},
+   say:"Bolí mě krk. Na monitor koukám zhruba takhle… *předsune hlavu jako želva*",
+   o:[{t:"Kupte si menší monitor, ať není tak daleko.",ok:0,r:"Mobil je nejmenší monitor. Tím jsem začal."},
+      {t:"Monitor do výšky očí a protáhneme šíji.",ok:1,r:"Wow. A to jsem to chtěl řešit pluginem."},
+      {t:"Otočte monitor vzhůru nohama. Procvičíte hlavu.",ok:0,r:"Kód se tím nezlepšil. To bude bug."}]},
+
+  {type:"real", name:"Pan Dostál, 39 let, squashista", look:{shirt:"#D9534F",hair:"#2E2E2E",acc:"band"},
+   say:"Při squashi jsem cítil, jako by mě někdo kopl do paty. Otočím se a nikdo tam není.",
+   o:[{t:"Thompsonův test. Podezření na rupturu Achillovy šlachy.",ok:1,r:"Stisk lýtka a chodidlo se nehne? To nezní dobře… jdu k ortopedovi."},
+      {t:"Klasická plantární fasciitida, dáme rázovou vlnu.",ok:0,r:"Bolí mě to výš. A lup to udělalo hodně."},
+      {t:"To byl nejspíš soupeř. Zavolejte policii.",ok:0,r:"Soupeř stál přede mnou. Asi."}],
+   why:"Pocit kopnutí do paty je klasický popis ruptury Achillovy šlachy. Při Thompsonově testu stisk lýtka nevyvolá plantární flexi."},
+
+  {type:"fun", name:"Pepa, novoroční běžec", look:{shirt:"#3E8C86",hair:"#7A4B2A",acc:"cap"},
    say:"Od pondělí běžím maraton! Zatím jsem běžel… na autobus. Ujel mi.",
-   o:[
-    {t:"Maraton je jen 42 autobusů za sebou. V pohodě.", ok:0, r:"No jo, ale ten autobus mi taky ujel."},
-    {t:"Začneme chůzí a krátkými úseky. Maraton počká.", ok:1, r:"Takže v pondělí… procházka? To beru!"},
-    {t:"Pondělí v 6:00 start. Já tu budu ležet a fandit.", ok:0, r:"V šest? To spím. A vy taky, ne?"}]},
-  {name:"Poslední pacientka: TY", look:{shirt:"#E2457A",hair:"#6B3E26",acc:"blanket"},
+   o:[{t:"Maraton je jen 42 autobusů za sebou. V pohodě.",ok:0,r:"No jo, ale ten autobus mi taky ujel."},
+      {t:"Začneme chůzí a krátkými úseky. Maraton počká.",ok:1,r:"Takže v pondělí procházka? To beru!"},
+      {t:"V pondělí v 6:00 start. Já tu budu ležet a fandit.",ok:0,r:"V šest? To spím. A vy taky, ne?"}],
+   gym:{say:"Stojím na běžeckém pásu. Jakou rychlost mi dáte?",
+     o:[{t:"Rovnou 20 km/h, jako v pondělí.",ok:0,r:"*odletí z pásu rovnou do žebřin*"},
+        {t:"Chůze 5 km/h a postupně přidáme.",ok:1,r:"Jdu… a nikdo mi neujíždí!"},
+        {t:"Nastav nulu a koukej na displej.",ok:0,r:"Spálil jsem 0 kalorií, ale cítím se skvěle."}],
+     why:"Postupné zvyšování zátěže je nejlepší prevence přetížení u začínajících běžců."}},
+
+  {type:"real", name:"Pan Řezníček, 52 let", look:{shirt:"#6C7A89",hair:"#5E5E5E",acc:"none"},
+   say:"Bolí mě záda, od včerejška necítím rozkrok a nemůžu se pořádně vymočit.",
+   o:[{t:"Okamžitě na urgentní příjem, podezření na syndrom kaudy equiny.",ok:1,r:"Rozumím, jedu hned. Díky, že jste to poznala."},
+      {t:"Začneme McKenzie cviky a za týden kontrola.",ok:0,r:"Za týden? Mám pocit, že tolik času nemám."},
+      {t:"To je stresem, dáme relaxační masáž.",ok:0,r:"Relax je fajn, ale tohle mi nesedí."}],
+   why:"Sedlová anestezie a poruchy močení jsou red flags pro syndrom kaudy equiny. Patří to na urgentní příjem ještě ten den, ne na fyzioterapii."},
+
+  {type:"real", name:"Jana, 35 let, po porodu", look:{shirt:"#E07A9B",hair:"#2E2E2E",acc:"bun"},
+   say:"Mám posilovat hluboký stabilizační systém. Který z těch svalů do něj vlastně nepatří?",
+   o:[{t:"Bránice.",ok:0,r:"Bránice tam patří. Prý se s ní dýchá i stabilizuje."},
+      {t:"m. transversus abdominis.",ok:0,r:"Ten tam patří, to je ten korzet, ne?"},
+      {t:"m. rectus abdominis.",ok:1,r:"Takže sixpack mě nezachrání? To jsem tušila."}],
+   why:"HSSP tvoří bránice, pánevní dno, m. transversus abdominis a mm. multifidi. Přímý břišní sval mezi ně nepatří."},
+
+  {type:"fun", name:"Poslední pacientka: TY", look:{shirt:"#E2457A",hair:"#6B3E26",acc:"blanket"},
    say:"Mám rýmu a teplotu, ale pořád myslím na pacienty. Co se mnou, kolegyně?",
-   o:[
-    {t:"Rozcvička s horečkou, ať nevypadneš z formy.", ok:0, r:"*kýchne* To snad ne. Jdu radši spát."},
-    {t:"Vezmi si ještě tři pacienty navíc. Pro jistotu.", ok:0, r:"Ty jsi ještě horší pacientka než já!"},
-    {t:"Klid, čaj, deka a seriál. Pacienti počkají.", ok:1, r:"Konečně rozumná terapeutka! Jdu na to."}]}
+   o:[{t:"Rozcvička s horečkou, ať nevypadneš z formy.",ok:0,r:"*kýchne* To snad ne. Jdu radši spát."},
+      {t:"Vezmi si ještě tři pacienty navíc. Pro jistotu.",ok:0,r:"Ty jsi ještě horší pacientka než já!"},
+      {t:"Klid, čaj, deka a seriál. Pacienti počkají.",ok:1,r:"Konečně rozumná terapeutka! Jdu na to."}]}
 ];
 
-/* ---------- pacient SVG ---------- */
-function patientSVG(L, mood){
-  const mouth = mood==="happy" ? '<path d="M18 30 q4 4 8 0" stroke="#2B2B2B" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
-             : mood==="meh" ? '<path d="M18 32 q4 -3 8 0" stroke="#2B2B2B" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
-             : '<path d="M18 31 h8" stroke="#2B2B2B" stroke-width="1.6" stroke-linecap="round"/>';
-  let acc = "";
+const COFFEE_LINES = [
+  "Espresso. Nejrychlejší mobilizace terapeutky.",
+  "Doktor by řekl čaj. Doktor tu ale není.",
+  "Kafe číslo… raději nepočítat.",
+  "Kofein: jediný legální doping na směně.",
+  "Ahh. Teď bych zvládla i Thompsonův test na sobě."
+];
+
+/* ---------- postavy ---------- */
+function mouth(mood,x,y){
+  return mood==="happy" ? `<path d="M${x-4} ${y} q4 4 8 0" stroke="#2B2B2B" stroke-width="1.6" fill="none" stroke-linecap="round"/>`
+       : mood==="meh" ? `<path d="M${x-4} ${y+2} q4 -3 8 0" stroke="#2B2B2B" stroke-width="1.6" fill="none" stroke-linecap="round"/>`
+       : `<path d="M${x-4} ${y+1} h8" stroke="#2B2B2B" stroke-width="1.6" stroke-linecap="round"/>`;
+}
+function lyingSVG(L, mood){
+  let acc="";
   if(L.acc==="cap") acc='<path d="M8 13 q14 -14 28 -2 l8 2 l-8 1 q-14 -6 -28 2 z" fill="#1E9DB4"/>';
   if(L.acc==="glasses") acc='<g stroke="#2B2B2B" stroke-width="1.3" fill="rgba(255,255,255,.4)"><circle cx="18" cy="22" r="3.6"/><circle cx="27" cy="22" r="3.6"/><path d="M21.6 22 h1.8"/></g>';
   if(L.acc==="bun") acc=`<circle cx="9" cy="14" r="6" fill="${L.hair}"/>`;
@@ -233,136 +358,224 @@ function patientSVG(L, mood){
     <circle cx="22" cy="24" r="12" fill="var(--skin)"/>
     <path d="M10 22 q0 -14 14 -13 q10 1 12 8 q-12 -5 -26 5" fill="${L.hair}"/>
     <circle cx="19" cy="22" r="1.4" fill="#2B2B2B"/><circle cx="27" cy="22" r="1.4" fill="#2B2B2B"/>
-    ${mouth}${acc}${thermo}
+    ${mouth(mood,22,30)}${acc}${thermo}
+  </svg>`;
+}
+function standingSVG(L, mood){
+  let acc="";
+  if(L.acc==="cap") acc='<path d="M10 10 q10 -12 20 0 l6 1 l-6 1 z" fill="#1E9DB4"/>';
+  if(L.acc==="glasses") acc='<g stroke="#2B2B2B" stroke-width="1" fill="rgba(255,255,255,.4)"><circle cx="17" cy="12" r="3"/><circle cx="24" cy="12" r="3"/><path d="M20 12 h1"/></g>';
+  if(L.acc==="bun") acc=`<circle cx="20" cy="2" r="5" fill="${L.hair}"/>`;
+  if(L.acc==="band") acc='<rect x="11" y="6" width="18" height="3" rx="1.5" fill="#E2457A"/>';
+  if(L.acc==="tie") acc='<path d="M19 24 h3 l1 12 l-2.5 3 l-2.5 -3 z" fill="#C0392B"/>';
+  return `<svg viewBox="0 0 40 92" aria-hidden="true">
+    <rect x="13" y="56" width="6" height="28" rx="3" fill="#3A4A5C"/><rect x="21" y="56" width="6" height="28" rx="3" fill="#3A4A5C"/>
+    <rect x="11" y="82" width="10" height="5" rx="2" fill="#2B2B2B"/><rect x="21" y="82" width="10" height="5" rx="2" fill="#2B2B2B"/>
+    <path d="M7 26 q-3 6 -2 16 M33 26 q3 6 2 16" stroke="var(--skin)" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <rect x="9" y="22" width="22" height="36" rx="7" fill="${L.shirt}"/>
+    <circle cx="20" cy="12" r="9.5" fill="var(--skin)"/>
+    <path d="M10.5 11 q1 -10 10 -10 q9 0 9 10 q-9 -6 -19 0" fill="${L.hair}"/>
+    <circle cx="17" cy="12" r="1.2" fill="#2B2B2B"/><circle cx="24" cy="12" r="1.2" fill="#2B2B2B"/>
+    ${mouth(mood,20.5,16)}${acc}
   </svg>`;
 }
 
-/* ---------- stav hry ---------- */
+/* ---------- stav ---------- */
 const $ = id => document.getElementById(id);
-const scene=$("scene"), pt=$("pt"), patientEl=$("patient"), bubble=$("bubble"), panel=$("panel"), hint=$("hint");
-const BED_X = 47, START_X = 8, SPEED = 32; // % šířky scény, %/s
-let x = START_X, target = null, held = 0, mode = "intro", idx = 0, score = 0, last = 0;
-$("hudT").textContent = P.length;
+const scene=$("scene"), pt=$("pt"), patientEl=$("patient"), gymP=$("gymPatient"), bubble=$("bubble"), panel=$("panel"), hint=$("hint"), curtain=$("curtain");
+const BED_X=49, START_X=6, COFFEE_X=28.5, SPEED=32, MAX_E=3;
+let x=START_X, target=null, goal=null, held=0, mode="intro", idx=0, score=0, energy=MAX_E, tired=false, last=0;
+$("hudT").textContent=P.length;
 
-function hud(){ $("hudN").textContent = Math.min(idx+1,P.length); $("hudH").textContent = "♥".repeat(score) + "♡".repeat(Math.max(0,P.length-score)); }
-
-function placePatient(mood){ patientEl.innerHTML = patientSVG(P[idx].look, mood); }
-
-function say(name, text){ bubble.innerHTML = `<span class="name">${name}</span>${text}`; bubble.classList.remove("hidden"); }
+function hud(){
+  $("hudN").textContent=Math.min(idx+1,P.length);
+  $("hudS").textContent=score;
+  $("hudE").innerHTML=Array.from({length:MAX_E},(_,k)=>`<span class="${k<energy?'':'off'}">☕</span>`).join("");
+  $("hudE").setAttribute("aria-label",`energie ${energy} z ${MAX_E}`);
+}
+function placePatient(mood){ patientEl.innerHTML=lyingSVG(P[idx].look,mood); }
+function say(name,text,me){ bubble.innerHTML=`<span class="name">${name}</span>${text}`; bubble.classList.toggle("me",!!me); bubble.classList.remove("hidden"); }
+function setHint(t){ hint.textContent=t; hint.classList.toggle("hidden",!t); }
+function floatText(txt,color,left,top){
+  const f=document.createElement("div"); f.className="float"; f.textContent=txt; f.style.color=color;
+  f.style.left=left||"64%"; f.style.top=top||"38%"; scene.appendChild(f); setTimeout(()=>f.remove(),1500);
+}
+function chip(type){ return type==="real"?'<span class="chip">ODBORNĚ</span>':type==="gym"?'<span class="chip gym">CVIČEBNA</span>':'<span class="chip fun">PRO SMÍCH</span>'; }
 
 function intro(){
-  mode="intro"; idx=0; score=0; x=START_X; target=null; hud(); placePatient("neutral");
-  bubble.classList.add("hidden"); hint.classList.add("hidden");
-  panel.innerHTML = `<span class="label">Směna začíná</span>
-    <p class="lead">Čekárna je plná. Dojdi k lehátku, vyslechni pacienta a vyber, co mu odpovíš. Někdy to dopadne odborně, někdy aspoň vtipně.</p>
-    <button class="btn" id="go">Jdu na to</button>`;
-  $("go").onclick = () => { mode="walk"; hint.classList.remove("hidden"); walkPanel(); };
+  mode="intro"; idx=0; score=0; energy=MAX_E; tired=false; x=START_X; target=null; goal=null;
+  scene.classList.remove("in-gym"); patientEl.classList.remove("gone");
+  hud(); placePatient("neutral"); bubble.classList.add("hidden"); setHint("");
+  panel.innerHTML=`<span class="label">Směna začíná</span>
+    <p class="lead">Čekárna je plná. Dojdi k lehátku, vyslechni pacienta a vyber odpověď. Některé případy jsou úplně odborné, jiné jen pro smích. Na každého pacienta padne jedno kafe ☕, tak si včas zajdi ke kávovaru. S některými pacienty můžeš pokračovat ve cvičebně.</p>
+    <div class="controls"><button class="btn" id="go">Jdu na to</button></div>`;
+  $("go").onclick=()=>{ mode="walk"; walkPanel(); };
 }
 
 function walkPanel(){
-  panel.innerHTML = `<span class="label">Jdi k lehátku</span>
+  setHint(tired?"Bez kafe ani ránu. Zajdi ke kávovaru.":"Dojdi k lehátku: šipky nebo klepni na podlahu");
+  panel.innerHTML=`<span class="label">${tired?'Došla energie':'Jdi k lehátku'}</span>
     <div class="controls">
       <button class="walk" id="wl" aria-label="Jít doleva">◀</button>
       <button class="walk" id="wr" aria-label="Jít doprava">▶</button>
-      <span class="lead">nebo klepni na podlahu ve scéně</span>
-    </div>`;
+      <button class="walk txt" id="wc">☕ Na kafe</button>
+      <button class="walk txt" id="wb">K lehátku</button>
+    </div>
+    <p class="lead">${tired?'Terapeutka zívá. Nejdřív kafe, pak pacient.':'Můžeš chodit šipkami, klepat na podlahu, nebo použít tlačítka.'}</p>`;
   const bind=(el,dir)=>{
-    const on=e=>{e.preventDefault(); held=dir; target=null;};
+    const on=e=>{e.preventDefault(); held=dir; target=null; goal=null;};
     const off=()=>{ if(held===dir) held=0; };
     el.addEventListener("pointerdown",on); el.addEventListener("pointerup",off);
     el.addEventListener("pointerleave",off); el.addEventListener("pointercancel",off);
-    el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); target=Math.max(2,Math.min(BED_X,x+dir*12)); }});
+    el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); target=Math.max(2,Math.min(BED_X,x+dir*12)); goal=null; }});
   };
   bind($("wl"),-1); bind($("wr"),1);
+  $("wc").onclick=goCoffee;
+  $("wb").onclick=()=>{ target=BED_X; goal=null; };
 }
+function goCoffee(){ if(mode!=="walk") return; target=COFFEE_X; goal="coffee"; held=0; }
 
-scene.addEventListener("pointerdown", e=>{
+$("coffee").addEventListener("pointerdown",e=>{ if(mode==="walk"){ e.stopPropagation(); goCoffee(); }});
+scene.addEventListener("pointerdown",e=>{
   if(mode!=="walk") return;
-  const r = scene.getBoundingClientRect();
-  target = Math.max(2, Math.min(BED_X, ((e.clientX - r.left)/r.width)*100 - 4.5));
+  const r=scene.getBoundingClientRect();
+  target=Math.max(2,Math.min(BED_X,((e.clientX-r.left)/r.width)*100-4.5)); goal=null;
 });
-document.addEventListener("keydown", e=>{
+document.addEventListener("keydown",e=>{
   if(mode!=="walk") return;
-  if(e.key==="ArrowRight"){ held=1; target=null; e.preventDefault(); }
-  if(e.key==="ArrowLeft"){ held=-1; target=null; e.preventDefault(); }
+  if(e.key==="ArrowRight"){ held=1; target=null; goal=null; e.preventDefault(); }
+  if(e.key==="ArrowLeft"){ held=-1; target=null; goal=null; e.preventDefault(); }
 });
-document.addEventListener("keyup", e=>{ if(e.key==="ArrowRight"||e.key==="ArrowLeft") held=0; });
+document.addEventListener("keyup",e=>{ if(e.key==="ArrowRight"||e.key==="ArrowLeft") held=0; });
 
 function loop(t){
-  const dt = last ? Math.min(.05,(t-last)/1000) : 0; last=t;
-  let dir = 0;
-  if(mode==="walk" || mode==="back"){
-    if(held) dir = held;
-    else if(target!==null){ const d=target-x; if(Math.abs(d)<.6){ x=target; target=null; } else dir=Math.sign(d); }
-    x = Math.max(2, Math.min(BED_X, x + dir*SPEED*dt));
+  const dt=last?Math.min(.05,(t-last)/1000):0; last=t;
+  let dir=0;
+  if(mode==="walk"||mode==="back"){
+    if(held) dir=held;
+    else if(target!==null){
+      const d=target-x;
+      if(Math.abs(d)<.6){ x=target; target=null; if(goal==="coffee"){ goal=null; drink(); } else if(mode==="back"){ pt.classList.remove("flip"); nextPatient(); } }
+      else dir=Math.sign(d);
+    }
+    x=Math.max(2,Math.min(BED_X,x+dir*SPEED*dt));
   }
-  pt.style.left = x+"%";
-  pt.classList.toggle("walking", dir!==0);
+  pt.style.left=x+"%";
+  pt.classList.toggle("walking",dir!==0);
   if(dir<0) pt.classList.add("flip"); else if(dir>0) pt.classList.remove("flip");
-  if(mode==="walk" && x>=BED_X-.1){ held=0; target=null; arrive(); }
-  if(mode==="back" && target===null){ pt.classList.remove("flip"); nextPatient(); }
+  if(mode==="walk" && x>=BED_X-.1 && dir>=0){
+    if(tired){ if(!pt.dataset.z){ pt.dataset.z=1; floatText("Zzz…","#5A716D",(x+2)+"%","30%"); say("Ty","Bez kafe ani ránu. Pacient chvilku počká.",true); } }
+    else { held=0; target=null; arrive(); }
+  } else if(x<BED_X-3) delete pt.dataset.z;
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
 
+function drink(){
+  mode="coffee"; pt.classList.add("flip","sip");
+  energy=MAX_E; tired=false; hud();
+  floatText("+☕☕☕","#B7791F","22%","48%");
+  say("Ty", COFFEE_LINES[Math.floor(Math.random()*COFFEE_LINES.length)], true);
+  panel.innerHTML=`<span class="label">Pauza na kafe</span><p class="lead">Energie doplněná. Pacient na lehátku mezitím dočetl časopis z roku 2009.</p>`;
+  setHint("");
+  setTimeout(()=>{ pt.classList.remove("sip","flip"); bubble.classList.add("hidden"); mode="walk"; walkPanel(); },1700);
+}
+
 function arrive(){
-  mode="talk"; hint.classList.add("hidden"); pt.classList.remove("walking");
-  const p=P[idx]; say(p.name, p.say);
+  mode="talk"; setHint(""); pt.classList.remove("walking");
+  energy=Math.max(0,energy-1); hud();
+  const p=P[idx]; say(p.name,p.say);
+  askOptions(p.o, chip(p.type), choose);
+}
+
+function askOptions(opts, chipHtml, cb){
   const order=[0,1,2].sort(()=>Math.random()-.5);
-  panel.innerHTML = `<span class="label">Co odpovíš?</span>
-    <div class="opts">${order.map((k,n)=>`<button class="opt" id="o${n}" data-k="${k}"><span class="k">${"ABC"[n]}</span><span>${p.o[k].t}</span></button>`).join("")}</div>`;
-  panel.querySelectorAll(".opt").forEach(b=>b.onclick=()=>choose(+b.dataset.k));
+  panel.innerHTML=`<span class="label">${chipHtml} Co odpovíš?</span>
+    <div class="opts">${order.map((k,n)=>`<button class="opt" id="o${n}" data-k="${k}"><span class="k">${"ABC"[n]}</span><span>${opts[k].t}</span></button>`).join("")}</div>`;
+  panel.querySelectorAll(".opt").forEach(b=>b.onclick=()=>cb(+b.dataset.k));
   $("o0").focus({preventScroll:true});
+}
+
+function reactHtml(c, opts, why){
+  const right=opts.find(o=>o.ok).t;
+  return `<div class="react ${c.ok?'':'meh'}"><strong>${c.ok?'Přesně tak.':'Vtipné. Ale tohle by v praxi neprošlo.'}</strong>
+    ${c.ok?'':`<span>Správně: „${right}“</span>`}
+    ${why?`<span class="why">${why}</span>`:''}</div>`;
 }
 
 function choose(k){
   const p=P[idx], c=p.o[k];
-  if(c.ok) score++;
-  hud(); placePatient(c.ok?"happy":"meh"); say(p.name, c.r);
-  floatText(c.ok?"+♥":"¯\\_(ツ)_/¯", c.ok?"#E2457A":"#5A716D");
-  const lastOne = idx===P.length-1;
-  panel.innerHTML = `<div class="react ${c.ok?'':'meh'}"><strong>${c.ok?'Odborně a s úsměvem.':'Vtipné. Ale pacient se ještě vrátí.'}</strong>${c.ok?'Pacient odchází spokojený.':'Správně by bylo: „'+p.o.find(o=>o.ok).t+'“'}</div>
-    <button class="btn" id="nx">${lastOne?'Zavřít ordinaci':'Další pacient'}</button>`;
-  $("nx").focus({preventScroll:true});
-  $("nx").onclick = ()=>{
-    if(lastOne) return finish();
-    bubble.classList.add("hidden"); patientEl.classList.add("gone");
-    panel.innerHTML = `<span class="label">Pacient odchází, další se ukládá na lehátko…</span>`;
-    mode="back"; target=START_X;
+  if(c.ok){ score++; floatText("+♥","#E2457A"); } else floatText("¯\\_(ツ)_/¯","#5A716D");
+  hud(); placePatient(c.ok?"happy":"meh"); say(p.name,c.r);
+  const lastOne=idx===P.length-1;
+  panel.innerHTML=reactHtml(c,p.o,p.why)+`<div class="controls">
+      ${p.gym?'<button class="btn gymbtn" id="gy">Přejít do cvičebny</button>':''}
+      <button class="btn ${p.gym?'ghost':''}" id="nx">${lastOne?'Zavřít ordinaci':'Další pacient'}</button></div>`;
+  if(p.gym) $("gy").onclick=goGym;
+  $("nx").onclick=()=> lastOne?finish():leave();
+  ($("gy")||$("nx")).focus({preventScroll:true});
+}
+
+function leave(){
+  bubble.classList.add("hidden"); patientEl.classList.add("gone");
+  panel.innerHTML=`<span class="label">Pacient odchází, další se ukládá na lehátko…</span>`;
+  mode="back"; target=START_X; goal=null;
+}
+
+function goGym(){
+  mode="gym"; bubble.classList.add("hidden");
+  curtain.textContent="Přesun do cvičebny…"; curtain.classList.add("on");
+  setTimeout(()=>{
+    scene.classList.add("in-gym"); patientEl.classList.add("gone");
+    gymP.innerHTML=standingSVG(P[idx].look,"neutral");
+    x=34; pt.style.left=x+"%"; pt.classList.remove("flip");
+    curtain.classList.remove("on");
+    const g=P[idx].gym; say(P[idx].name,g.say);
+    askOptions(g.o, chip("gym"), chooseGym);
+  },650);
+}
+
+function chooseGym(k){
+  const p=P[idx], g=p.gym, c=g.o[k];
+  if(c.ok){ score++; floatText("+♥ bonus","#E2457A","50%","34%"); } else floatText("au","#5A716D","52%","34%");
+  hud(); gymP.innerHTML=standingSVG(p.look,c.ok?"happy":"meh"); say(p.name,c.r);
+  panel.innerHTML=reactHtml(c,g.o,g.why)+`<div class="controls"><button class="btn" id="bk">Zpátky do ordinace</button></div>`;
+  $("bk").focus({preventScroll:true});
+  $("bk").onclick=()=>{
+    bubble.classList.add("hidden");
+    curtain.textContent="Zpátky do ordinace…"; curtain.classList.add("on");
+    setTimeout(()=>{ scene.classList.remove("in-gym"); gymP.innerHTML=""; curtain.classList.remove("on"); x=BED_X; leave(); },650);
   };
 }
 
 function nextPatient(){
   idx++; hud(); placePatient("neutral");
   requestAnimationFrame(()=>patientEl.classList.remove("gone"));
-  mode="walk"; hint.classList.remove("hidden"); walkPanel();
-}
-
-function floatText(txt,color){
-  const f=document.createElement("div"); f.className="float"; f.textContent=txt; f.style.color=color;
-  f.style.left="64%"; f.style.top="38%"; scene.appendChild(f); setTimeout(()=>f.remove(),1500);
+  if(energy===0) tired=true;
+  mode="walk"; walkPanel();
 }
 
 function finish(){
   mode="end";
-  const ranks=[[8,"Primářka rehabilitace","Diagnostikuješ i s horečkou. Pacienti by se objednávali rok dopředu."],
-    [6,"Vedoucí fyzioterapeutka","Skoro dokonalé. Ten zbytek prostě nedělal domácí cvičení."],
-    [4,"Zkušená terapeutka","Solidní směna, i když napůl z postele."],
-    [2,"Terapeutka na nemocenské","Mozek jede v úsporném režimu. Naprosto v pořádku."],
+  const n=P.length;
+  const ranks=[[n,"Primářka rehabilitace","Diagnostikuješ i s horečkou. Pacienti by se objednávali rok dopředu."],
+    [Math.round(n*.75),"Vedoucí fyzioterapeutka","Skoro dokonalé. Zbytek prostě nedělal domácí cvičení."],
+    [Math.round(n*.5),"Zkušená terapeutka","Solidní směna, i když napůl z postele."],
+    [Math.round(n*.25),"Terapeutka na nemocenské","Mozek jede v úsporném režimu. Naprosto v pořádku."],
     [0,"Stand-up komička","Pacienti nejsou zdraví, ale nasmáli se. To se taky počítá."]];
   const r=ranks.find(x=>score>=x[0]);
-  say("Ordinace", "Zavíráme! Všichni pacienti propuštěni. Teď už se léčíš jen ty.");
-  panel.innerHTML = `<span class="label">Konec směny</span>
-    <p class="big">${score} / ${P.length}</p>
+  say("Ordinace","Zavíráme! Všichni pacienti propuštěni. Teď už se léčíš jen ty.");
+  panel.innerHTML=`<span class="label">Konec směny</span>
+    <p class="big">${score} <span style="font-size:20px;color:var(--muted)">srdíček (včetně bonusů ze cvičebny)</span></p>
     <strong style="font-family:var(--f-display);font-size:20px">${r[1]}</strong>
     <p class="lead" style="margin:0">${r[2]}</p>
     <div class="rx"><h3>Rp. pro terapeutku</h3>
       <ul><li>Ležet 3× denně, opakovat do vyčerpání seriálů.</li>
-      <li>Horký čaj s medem dle potřeby.</li>
+      <li>Kafe zítra. Dnes horký čaj s medem.</li>
       <li>Žádné cvičení s pacienty, ani v duchu.</li>
-      <li>Kontrola: až bude zase chuť na kafe.</li></ul></div>
+      <li>Kontrola: až bude zase chuť jít do cvičebny.</li></ul></div>
     <div class="controls"><button class="btn" id="again">Nová směna</button></div>`;
-  $("again").onclick = ()=>{ patientEl.classList.remove("gone"); intro(); };
+  $("again").onclick=intro;
 }
 
 intro();
